@@ -1,0 +1,22 @@
+{
+  "name": "worker",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@repo/database": "*"
+  },
+  "scripts": {
+    "dev": "bun --watch run src/index.ts"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@types/nodemailer": "^7.0.11",
+    "cron": "^4.4.0",
+    "nodemailer": "^8.0.1",
+    "p-limit": "^7.3.0"
+  }
+}
