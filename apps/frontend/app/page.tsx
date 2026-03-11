@@ -1,10 +1,5 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import {
   Activity,
   BarChart3,
@@ -19,8 +14,6 @@ import {
 } from "lucide-react";
 
 export default function LandingPage() {
-  const router = useRouter();
-
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -31,7 +24,7 @@ export default function LandingPage() {
               <div className="space-y-4">
                 <h1 className="text-5xl sm:text-6xl font-bold text-foreground leading-tight">
                   Monitor Your Websites{" "}
-                  <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  <span className="bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">
                     24/7
                   </span>
                 </h1>
@@ -81,7 +74,7 @@ export default function LandingPage() {
 
             {/* Hero Visual */}
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-3xl blur-3xl" />
+              <div className="absolute inset-0 bg-linear-to-br from-primary/20 to-secondary/20 rounded-3xl blur-3xl" />
               <div className="relative bg-card border border-border rounded-3xl p-8 space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -125,7 +118,7 @@ export default function LandingPage() {
                   {[65, 40, 75, 45, 80, 55, 90].map((height, i) => (
                     <div
                       key={i}
-                      className="flex-1 bg-gradient-to-t from-primary to-secondary rounded-sm"
+                      className="flex-1 bg-linear-to-t from-primary to-secondary rounded-sm"
                       style={{ height: `${height}%` }}
                     />
                   ))}
@@ -296,7 +289,7 @@ export default function LandingPage() {
                       key={feature}
                       className="flex items-center gap-3 text-foreground/70"
                     >
-                      <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                      <CheckCircle className="w-5 h-5 text-primary shrink-0" />
                       {feature}
                     </li>
                   ))}
