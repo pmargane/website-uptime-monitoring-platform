@@ -19,25 +19,34 @@ const checkMonitor = (
   let startTime = Date.now();
 
   return new Promise((resolve, reject) => {
-    fetch(monitor.url)
+    fetch(monitor.url, {
+      signal: AbortSignal.timeout(10000),
+    })
       .then((res) => {
+        statusCode = res.status;
         if (res.ok) {
           monitorStatus = "UP";
-          statusCode = res.status;
           latency = Date.now() - startTime;
           resolve({
             monitorStatus,
             statusCode,
             latency,
           });
+        } else {
+          monitorStatus = "DOWN";
+          resolve({
+            monitorStatus,
+            statusCode,
+            latency: null,
+          });
         }
       })
-      .catch((error) => {
+      .catch((_error) => {
         monitorStatus = "DOWN";
         resolve({
           monitorStatus,
-          statusCode,
-          latency,
+          statusCode: null,
+          latency: null,
         });
       });
   });
@@ -54,12 +63,8 @@ const createTick = async (
       data: {
         monitorId,
         status: monitorStatus,
-        ...(latency && {
-          latency,
-        }),
-        ...(statusCode && {
-          statusCode,
-        }),
+        latency: latency ?? null,
+        statusCode: statusCode ?? null,
       },
     });
     console.log("tick successfully added", tick);
@@ -70,21 +75,12 @@ const createTick = async (
 
 const sendAlert = async (
   monitor: IMonitor,
+  userEmail: string,
   lastCheckedAt: Date,
   isDown: boolean,
 ) => {
   try {
     console.log("sending alert");
-    const user = await prisma.user.findUnique({
-      where: {
-        id: monitor.userId,
-      },
-    });
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    const { email } = user;
 
     const EMAIL_TEXT = isDown
       ? `
@@ -102,12 +98,12 @@ const sendAlert = async (
 
     const mailOptions = {
       from: "bettermonitors@gmail.com",
-      to: email,
+      to: userEmail,
       subject: "Monitor Alert",
       text: EMAIL_TEXT,
     };
 
-    console.log("sending alert to ", email);
+    console.log("sending alert to ", userEmail);
     // await transporter.sendMail(mailOptions);
   } catch (error) {
     console.error("error sending alert", error);
@@ -115,7 +111,7 @@ const sendAlert = async (
 };
 
 const job = new CronJob(
-  "* * * * * *",
+  "*/3 * * * *",
   async () => {
     try {
       console.log("checking monitors");
@@ -134,6 +130,11 @@ const job = new CronJob(
             },
             take: 1,
           },
+          user: {
+            select: {
+              email: true,
+            },
+          },
         },
       });
 
@@ -142,19 +143,22 @@ const job = new CronJob(
           limit(async () => {
             const { monitorStatus, latency, statusCode } =
               await checkMonitor(monitor);
-            console.log(monitorStatus, latency, statusCode);
+
             await createTick(monitor.id, monitorStatus, statusCode, latency);
-            if (monitorStatus === "DOWN") {
-              await sendAlert(monitor, new Date(), true);
+
+            const lastStatus = monitor.ticks[0]?.status;
+
+            if (monitorStatus === "DOWN" && lastStatus === "UP") {
+              await sendAlert(monitor, monitor.user.email, new Date(), true);
             }
-            if (monitor.ticks[0]?.status === "DOWN" && monitorStatus === "UP") {
-              await sendAlert(monitor, new Date(), false);
+            if (monitorStatus === "UP" && lastStatus === "DOWN") {
+              await sendAlert(monitor, monitor.user.email, new Date(), false);
             }
           }),
         ),
       );
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   },
   null,
