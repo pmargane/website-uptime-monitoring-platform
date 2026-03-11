@@ -32,6 +32,7 @@ const addMonitorController = async (req: Request, res: Response) => {
       error: null,
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({
       success: false,
       data: null,
@@ -48,11 +49,33 @@ const fetchMonitorsController = async (req: Request, res: Response) => {
       where: {
         userId,
       },
+      include: {
+        ticks: {
+          select: {
+            checkedAt: true,
+            status: true,
+            latency: true,
+            statusCode: true,
+          },
+          orderBy: {
+            checkedAt: "desc",
+          },
+          take: 1,
+        },
+      },
     });
 
     res.status(200).json({
       success: true,
-      data: monitors,
+      data: monitors.map((monitor) => ({
+        id: monitor.id,
+        name: monitor.name,
+        url: monitor.url,
+        status: monitor.ticks[0]?.status,
+        lastChecked: monitor.ticks[0]?.checkedAt,
+        responseTime: monitor.ticks[0]?.latency,
+        isActive: monitor.isActive,
+      })),
       error: null,
     });
   } catch (error) {

@@ -1,5 +1,6 @@
 import express from "express";
 import authRouter from "./routes/auth.route";
+import monitorRouter from "./routes/monitor.route";
 import { PORT } from "./config";
 import cors from "cors";
 
@@ -13,6 +14,7 @@ app.get("/", (_req, res) => {
 });
 
 app.use("/api/auth", authRouter);
+app.use("/api/monitors", monitorRouter);
 
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
