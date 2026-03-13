@@ -97,6 +97,9 @@ const fetchMonitorByIdController = async (req: Request, res: Response) => {
         id: monitorId,
         userId,
       },
+      include: {
+        ticks: true,
+      },
     });
 
     if (!monitor) {
@@ -108,9 +111,16 @@ const fetchMonitorByIdController = async (req: Request, res: Response) => {
       return;
     }
 
+    const totalTicksLength = monitor.ticks.length || 0;
+
     res.status(200).json({
       success: true,
-      data: monitor,
+      data: {
+        ...monitor,
+        lastChecked: monitor.ticks[totalTicksLength - 1]?.checkedAt,
+        status: monitor.ticks[totalTicksLength - 1]?.status,
+        latency: monitor.ticks[totalTicksLength - 1]?.latency,
+      },
       error: null,
     });
   } catch (error) {
@@ -149,7 +159,7 @@ const toggleMonitorActiveController = async (req: Request, res: Response) => {
         userId,
       },
       data: {
-        isActive: !monitor.isActive,
+        isActive: monitor.isActive === "ACTIVE" ? "PAUSED" : "ACTIVE",
       },
     });
 

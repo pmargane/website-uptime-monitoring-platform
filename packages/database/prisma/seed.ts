@@ -1,3 +1,4 @@
+import type { MonitorActiveState } from "../generated/prisma/enums";
 import prisma from "../index";
 
 interface UserCreateInput {
@@ -20,27 +21,27 @@ const DEMO_MONITORS = [
   {
     url: "https://google.com",
     name: "Google",
-    isActive: true,
+    isActive: "ACTIVE",
   },
   {
     url: "https://facebook.com",
     name: "Facebook",
-    isActive: true,
+    isActive: "ACTIVE",
   },
   {
     url: "https://github.com",
     name: "Github",
-    isActive: true,
+    isActive: "ACTIVE",
   },
   {
     url: "https://youtube.com",
     name: "Youtube",
-    isActive: true,
+    isActive: "ACTIVE",
   },
   {
     url: "https://websitethatdoesnotexist.com",
     name: "Website that does not exist",
-    isActive: true,
+    isActive: "ACTIVE",
   },
 ];
 
@@ -67,6 +68,7 @@ async function seedDB() {
     await prisma.monitor.createMany({
       data: DEMO_MONITORS.map((monitor) => ({
         ...monitor,
+        isActive: monitor.isActive as MonitorActiveState,
         userId: Math.random() > 0.5 ? user1.id : user2.id,
       })),
     });

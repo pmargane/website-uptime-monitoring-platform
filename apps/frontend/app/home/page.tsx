@@ -6,7 +6,13 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { StatsCard } from "@/components/stats-card";
 import { MonitorCard } from "@/components/monitor-card";
-import { Activity, Plus, AlertCircle, CheckCircle, Clock } from "lucide-react";
+import {
+  Activity,
+  Plus,
+  AlertCircle,
+  CheckCircle,
+  PauseCircleIcon,
+} from "lucide-react";
 import { AddMonitorModal } from "@/components/add-monitor-modal";
 import { toast } from "sonner";
 import axios from "axios";
@@ -20,7 +26,7 @@ interface Monitor {
   uptime: number;
   lastChecked: Date;
   responseTime: number;
-  isActive: boolean;
+  isActive: "ACTIVE" | "PAUSED";
 }
 
 export default function DashboardPage() {
@@ -37,7 +43,8 @@ export default function DashboardPage() {
   }, [status, router]);
 
   const handleDeleteMonitor = async (monitorId: string) => {
-    if (!window.confirm("Are you ")) return;
+    if (!window.confirm("Are you sure you want to delete this monitor?"))
+      return;
     try {
       await axios.delete(`${BACKEND_URL}/api/monitors/${monitorId}`, {
         headers: {
@@ -55,6 +62,7 @@ export default function DashboardPage() {
     try {
       const response = await axios.patch(
         `${BACKEND_URL}/api/monitors/${monitorId}`,
+        {},
         {
           headers: {
             Authorization: `Bearer ${session?.accessToken}`,
@@ -62,7 +70,9 @@ export default function DashboardPage() {
         },
       );
       setMonitors(
-        monitors.map((m) => (m.id === monitorId ? response.data.data : m)),
+        monitors.map((m) =>
+          m.id === monitorId ? response.data.data.monitor : m,
+        ),
       );
       toast.success("Monitor toggled successfully");
     } catch (error) {
@@ -114,12 +124,8 @@ export default function DashboardPage() {
 
   const upMonitors = monitors.filter((m) => m.status === "UP").length;
   const downMonitors = monitors.filter((m) => m.status === "DOWN").length;
-  //   const avgUptime =
-  //     monitors.length > 0
-  //       ? (
-  //           monitors.reduce((sum, m) => sum + m.uptime, 0) / monitors.length
-  //         ).toFixed(2)
-  //       : "0.00";
+  const pausedMonitors = monitors.filter((m) => m.isActive === "PAUSED").length;
+  const activeMonitors = monitors.filter((m) => m.isActive === "ACTIVE").length;
 
   if (status === "loading" || isLoading) {
     return (
@@ -147,7 +153,6 @@ export default function DashboardPage() {
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <div className="mb-12">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-8">
             <div className="space-y-2">
@@ -166,15 +171,14 @@ export default function DashboardPage() {
             </Button>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <StatsCard
               title="Active Monitors"
-              value={monitors.length}
+              value={activeMonitors}
               icon={Activity}
               trend={{
                 label: "monitors",
-                value: monitors.filter((m) => m.isActive).length.toString(),
+                value: activeMonitors.toString(),
                 direction: "up",
               }}
             />
@@ -198,21 +202,24 @@ export default function DashboardPage() {
                 direction: "down",
               }}
             />
+            <StatsCard
+              title="Websites Paused"
+              value={pausedMonitors}
+              icon={PauseCircleIcon}
+              trend={{
+                label: "monitors paused",
+                value: pausedMonitors.toString(),
+                direction: "up",
+              }}
+            />
           </div>
         </div>
 
-        {/* Monitors List */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-foreground">
               Your Monitors
             </h2>
-            {/* <div className="text-sm text-foreground/60">
-              Avg Uptime:{" "}
-              <span className="font-semibold text-foreground">
-                {avgUptime}%
-              </span>
-            </div> */}
           </div>
 
           {monitors.length === 0 ? (

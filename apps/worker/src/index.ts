@@ -41,11 +41,11 @@ const checkMonitor = (
           });
         }
       })
-      .catch((_error) => {
+      .catch((error) => {
         monitorStatus = "DOWN";
         resolve({
           monitorStatus,
-          statusCode: null,
+          statusCode: error.status,
           latency: null,
         });
       });
@@ -117,7 +117,7 @@ const job = new CronJob(
       console.log("checking monitors");
       const monitors = await prisma.monitor.findMany({
         where: {
-          isActive: true,
+          isActive: "ACTIVE",
         },
         include: {
           ticks: {

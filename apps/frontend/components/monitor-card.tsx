@@ -20,7 +20,7 @@ interface MonitorCardProps {
   responseTime?: number;
   onToggle?: (id: string) => void;
   onDelete?: (id: string) => void;
-  isActive?: boolean;
+  isActive: "ACTIVE" | "PAUSED";
 }
 
 // --status-up: oklch(0.6 0.2 140);
@@ -48,6 +48,21 @@ const statusConfig = {
   },
 };
 
+const activityConfig = {
+  ACTIVE: {
+    label: "ACTIVE",
+    bgColor: "bg-green-500/10",
+    textColor: "text-green-500",
+    dotColor: "bg-green-500",
+  },
+  PAUSED: {
+    label: "PAUSED",
+    bgColor: "bg-yellow-500/10",
+    textColor: "text-yellow-500",
+    dotColor: "bg-yellow-500",
+  },
+};
+
 export function MonitorCard({
   id,
   name,
@@ -57,9 +72,10 @@ export function MonitorCard({
   responseTime,
   onToggle,
   onDelete,
-  isActive = true,
+  isActive,
 }: MonitorCardProps) {
   const config = statusConfig[status] || statusConfig.PENDING;
+  const actyConfig = activityConfig[isActive] || activityConfig.PAUSED;
   const timeSinceCheck = new Date().getTime() - new Date(lastChecked).getTime();
   const secondsAgo = Math.floor(timeSinceCheck / 1000);
   const minutesAgo = Math.floor(timeSinceCheck / 60000);
@@ -100,20 +116,25 @@ export function MonitorCard({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="h-8 w-8 opacity-0 cursor-pointer group-hover:opacity-100 transition-opacity"
             >
               <MoreVertical className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className={"hover:text-white"}>
             <DropdownMenuItem>
               <Link href={`/monitors/${id}`} className="cursor-pointer">
                 View Details
               </Link>
             </DropdownMenuItem>
             {onToggle && (
-              <DropdownMenuItem onClick={() => onToggle(id)}>
-                {isActive ? "Pause Monitoring" : "Resume Monitoring"}
+              <DropdownMenuItem
+                className={"hover:text-white cursor-pointer"}
+                onClick={() => onToggle(id)}
+              >
+                {isActive === "ACTIVE"
+                  ? "Pause Monitoring"
+                  : "Resume Monitoring"}
               </DropdownMenuItem>
             )}
             {onDelete && (
@@ -128,9 +149,7 @@ export function MonitorCard({
         </DropdownMenu>
       </div>
 
-      {/* Status & Metrics */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4 pb-4 border-b border-border/50">
-        {/* Status */}
         <div>
           <p className="text-xs text-foreground/60 font-medium mb-1">Status</p>
           <div className="flex items-center gap-2">
@@ -143,20 +162,27 @@ export function MonitorCard({
           </div>
         </div>
 
-        {/* Response Time */}
-        {responseTime && (
-          <div className="hidden sm:block">
+        <div className="hidden sm:block">
+          <p className="text-xs text-foreground/60 font-medium mb-1">Latency</p>
+          <p className="text-lg font-semibold text-foreground">
+            {responseTime ? `${responseTime}ms` : "-"}
+          </p>
+        </div>
+
+        {isActive && (
+          <div>
             <p className="text-xs text-foreground/60 font-medium mb-1">
-              Latency
+              Status
             </p>
-            <p className="text-lg font-semibold text-foreground">
-              {responseTime}ms
-            </p>
+            <Badge
+              className={`${actyConfig.bgColor} ${actyConfig.textColor} border-0`}
+            >
+              {actyConfig.label}
+            </Badge>
           </div>
         )}
       </div>
 
-      {/* Footer */}
       <div className="flex items-center justify-between">
         <p className="text-xs text-foreground/60">
           Last checked:{" "}
@@ -165,7 +191,11 @@ export function MonitorCard({
           </span>
         </p>
         <Link href={`/monitors/${id}`}>
-          <Button variant="ghost" size="sm" className="h-8 gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 gap-2 cursor-pointer"
+          >
             View <ArrowRight className="w-4 h-4" />
           </Button>
         </Link>
