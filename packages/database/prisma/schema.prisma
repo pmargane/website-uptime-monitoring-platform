@@ -23,29 +23,35 @@ model User {
 }
 
 model Monitor {
-  id        String   @id @default(uuid())
-  name      String   @unique
+  id        String             @id @default(uuid())
+  name      String             @unique
   url       String
   userId    String
-  isActive  Boolean  @default(true)
+  isActive  MonitorActiveState @default(ACTIVE)
   ticks     Tick[]
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
 }
 
 model Tick {
   id         String        @id @default(uuid())
   monitorId  String
   status     MonitorStatus @default(PENDING)
-  monitor    Monitor       @relation(fields: [monitorId], references: [id])
+  monitor    Monitor       @relation(fields: [monitorId], references: [id], onDelete: Cascade)
   latency    Int?
   statusCode Int?
   checkedAt  DateTime      @default(now())
 }
 
 enum MonitorStatus {
+  PAUSED
   PENDING
   UP
   DOWN
+}
+
+enum MonitorActiveState {
+  PAUSED
+  ACTIVE
 }
