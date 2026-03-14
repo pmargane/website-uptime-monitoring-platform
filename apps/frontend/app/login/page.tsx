@@ -67,7 +67,6 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
-        {/* Header */}
         <div className="mb-8 space-y-4">
           <Link
             href="/"
@@ -91,7 +90,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Form */}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
             {error && (
@@ -159,7 +157,6 @@ export default function LoginPage() {
           </form>
         </Form>
 
-        {/* Sign Up Link */}
         <div className="mt-8 text-center">
           <p className="text-foreground/70">
             Don't have an account?{" "}
@@ -170,24 +167,6 @@ export default function LoginPage() {
               Create one
             </Link>
           </p>
-        </div>
-
-        {/* Demo Credentials */}
-        <div className="mt-10 pt-8 border-t border-border/50 space-y-3">
-          <p className="text-xs font-medium text-foreground/60 uppercase tracking-wider">
-            Demo Credentials
-          </p>
-          <div className="text-xs space-y-2 text-foreground/60">
-            <div>
-              <span className="font-medium">Email:</span> demo@example.com
-            </div>
-            <div>
-              <span className="font-medium">Password:</span> password123
-            </div>
-            <p className="pt-2 italic">
-              Use these to test the dashboard before creating your account
-            </p>
-          </div>
         </div>
       </div>
     </div>

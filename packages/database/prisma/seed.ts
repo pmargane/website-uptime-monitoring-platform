@@ -31,7 +31,7 @@ const DEMO_MONITORS = [
   {
     url: "https://github.com",
     name: "Github",
-    isActive: "ACTIVE",
+    isActive: "PAUSED",
   },
   {
     url: "https://youtube.com",
