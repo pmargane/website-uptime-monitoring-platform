@@ -1,21 +1,17 @@
 import type { MonitorActiveState } from "../generated/prisma/enums";
 import prisma from "../index";
+import bcrypt from 'bcryptjs'
 
 interface UserCreateInput {
   email: string;
   password: string;
 }
 
-const DEMO_USERS: UserCreateInput[] = [
-  {
-    email: "john.doe@example.com",
-    password: "password",
-  },
-  {
-    email: "jane.doe@example.com",
-    password: "password",
-  },
-];
+const DEMO_USER: UserCreateInput =
+{
+  email: "bridentony45@gmail.com",
+  password: "test1234",
+};
 
 const DEMO_MONITORS = [
   {
@@ -51,32 +47,26 @@ async function seedDB() {
     await prisma.monitor.deleteMany();
     await prisma.user.deleteMany();
 
-    const [user1, user2] = await Promise.all([
-      prisma.user.create({
-        data: {
-          email: DEMO_USERS[0]?.email as string,
-          password: DEMO_USERS[0]?.password as string,
-        },
-      }),
-      prisma.user.create({
-        data: {
-          email: DEMO_USERS[1]?.email as string,
-          password: DEMO_USERS[1]?.password as string,
-        },
-      }),
-    ]);
+    const user = await prisma.user.create({
+      data: {
+        email: DEMO_USER.email,
+        password: await bcrypt.hash(DEMO_USER.password, 10),
+      }
+    });
+
     await prisma.monitor.createMany({
       data: DEMO_MONITORS.map((monitor) => ({
         ...monitor,
         isActive: monitor.isActive as MonitorActiveState,
-        userId: Math.random() > 0.5 ? user1.id : user2.id,
-      })),
-    });
+        userId: user.id
+      }))
+    })
 
-    console.log("Database seeded successfully");
   } catch (error) {
     console.log(error);
   }
 }
 
-seedDB();
+seedDB().then(() => {
+  console.log("Database seeded successfully");
+}).catch(console.error);
