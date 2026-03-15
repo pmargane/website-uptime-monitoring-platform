@@ -114,13 +114,14 @@ export function AddMonitorModal({
             <div className="flex gap-3 justify-end pt-4">
               <Button
                 type="button"
+                className={"cursor-pointer"}
                 variant="outline"
                 onClick={() => onOpenChange(false)}
                 disabled={isLoading}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button className={"text-white cursor-pointer"} type="submit" disabled={isLoading}>
                 {isLoading ? "Adding..." : "Add Monitor"}
               </Button>
             </div>

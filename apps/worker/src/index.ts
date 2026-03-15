@@ -2,7 +2,8 @@ import { CronJob } from "cron";
 import prisma from "@repo/database";
 import pLimit from "p-limit";
 import type { IMonitor } from "../types";
-import transporter from "./transporter";
+import resend from "./resend";
+import { FROM_EMAIL_ADDRESS } from "./config";
 
 const limit = pLimit(50);
 
@@ -80,31 +81,40 @@ const sendAlert = async (
   isDown: boolean,
 ) => {
   try {
-    console.log("sending alert");
+    const EMAIL_TEXT = `
+    <div style="font-family: Arial, sans-serif; line-height:1.6;">
+      <h2>Monitor Status Alert</h2>
+    
+      <p>Hello,</p>
+    
+      <p>We detected a status change for one of your monitors.</p>
+    
+      <p>
+        <strong>Monitor Name:</strong> ${monitor.name}<br/>
+        <strong>Monitor URL:</strong> ${monitor.url}<br/>
+        <strong>Status:</strong> ${isDown ? "Down ❌" : "Operational ✅"}<br/>
+        <strong>Last Checked:</strong> ${lastCheckedAt.toLocaleString()}
+      </p>
+    
+      <p>
+        ${isDown
+        ? "Our monitoring system detected that your service is currently unreachable."
+        : "Good news! Your service is responding normally again."
+      }
+      </p>
+    
+      <p>If you did not expect this alert, please verify your server or application status.</p>
+    
+      <p>Best regards,<br/>Monitoring System</p>
+    </div>
+    `;
 
-    const EMAIL_TEXT = isDown
-      ? `
-    Hello,
-        Your monitor ${monitor.name} is down.
-        Please check it.
-
-        last checked at ${lastCheckedAt.toLocaleString()}`
-      : `
-    Hello,
-        Your monitor ${monitor.name} is back to normal.
-        Please check it.
-
-        last checked at ${lastCheckedAt.toLocaleString()}`;
-
-    const mailOptions = {
-      from: "bettermonitors@gmail.com",
-      to: userEmail,
-      subject: "Monitor Alert",
-      text: EMAIL_TEXT,
-    };
-
-    console.log("sending alert to ", userEmail);
-    // await transporter.sendMail(mailOptions);
+    // await resend.emails.send({
+    //   from: FROM_EMAIL_ADDRESS,
+    //   to: [userEmail],
+    //   subject: `Mointor Alert for ${monitor.url}`,
+    //   html: EMAIL_TEXT
+    // })
   } catch (error) {
     console.error("error sending alert", error);
   }
@@ -148,7 +158,7 @@ const job = new CronJob(
 
             const lastStatus = monitor.ticks[0]?.status;
 
-            if (monitorStatus === "DOWN" && lastStatus === "UP") {
+            if (monitorStatus === "DOWN" && (lastStatus === "UP" || !lastStatus)) {
               await sendAlert(monitor, monitor.user.email, new Date(), true);
             }
             if (monitorStatus === "UP" && lastStatus === "DOWN") {
