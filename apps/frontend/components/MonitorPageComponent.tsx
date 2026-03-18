@@ -60,7 +60,7 @@ interface Monitor {
   status: "UP" | "DOWN" | "PENDING";
   lastChecked: string;
   latency: number;
-  isActive: boolean;
+  isActive: "ACTIVE" | "PAUSED";
   createdAt: string;
   updatedAt: string;
   ticks: Tick[];
@@ -129,6 +129,40 @@ export default function MonitorDetailsPageComponent({ id }: { id: string }) {
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
+    }
+  };
+
+  const handleDeleteMonitor = async (monitorId: string) => {
+    if (!window.confirm("Are you sure you want to delete this monitor?"))
+      return;
+    try {
+      await axios.delete(`${BACKEND_URL}/api/monitors/${monitorId}`, {
+        headers: {
+          Authorization: `Bearer ${session?.accessToken}`,
+        },
+      });
+      router.push("/home");
+      toast.success("Monitor deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete monitor");
+    }
+  };
+
+  const handleToggleMonitor = async (monitorId: string) => {
+    try {
+      const response = await axios.patch(
+        `${BACKEND_URL}/api/monitors/${monitorId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${session?.accessToken}`,
+          },
+        },
+      );
+      fetchMonitorData();
+      toast.success("Monitor toggled successfully");
+    } catch (error) {
+      toast.error("Failed to toggle monitor");
     }
   };
 
@@ -270,7 +304,7 @@ export default function MonitorDetailsPageComponent({ id }: { id: string }) {
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2"
+                className="gap-2 cursor-pointer"
                 onClick={() => fetchMonitorData(true)}
                 disabled={isRefreshing}
               >
@@ -279,14 +313,20 @@ export default function MonitorDetailsPageComponent({ id }: { id: string }) {
                 />
                 Refresh
               </Button>
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button
+                onClick={() => handleToggleMonitor(monitor.id)}
+                variant="outline"
+                size="sm"
+                className="gap-2 cursor-pointer"
+              >
                 <Pause className="w-4 h-4" />
                 Pause
               </Button>
               <Button
+                onClick={() => handleDeleteMonitor(monitor.id)}
                 variant="outline"
                 size="sm"
-                className="gap-2 text-destructive hover:text-destructive"
+                className="gap-2 text-destructive cursor-pointer hover:text-destructive"
               >
                 <Trash2 className="w-4 h-4" />
                 Delete
@@ -295,10 +335,31 @@ export default function MonitorDetailsPageComponent({ id }: { id: string }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div>
+            {monitor.isActive === "PAUSED" ? (
+              <div className="rounded-xl border border-border bg-card p-4 space-y-1">
+                <p className="text-xs text-foreground/50 font-medium uppercase tracking-wider">
+                  Monitor Status
+                </p>
+                <p className="text-sm text-red-400 font-semibold uppercase tracking-wider">
+                  Paused
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-border bg-card p-4 space-y-1">
+                <p className="text-xs text-foreground/50 font-medium uppercase tracking-wider">
+                  Monitor Status
+                </p>
+                <p className="text-sm text-green-400 font-semibold uppercase tracking-wider">
+                  Active
+                </p>
+              </div>
+            )}
+          </div>
           <div className="rounded-xl border border-border bg-card p-4 space-y-1">
             <p className="text-xs text-foreground/50 font-medium uppercase tracking-wider">
-              Status
+              Uptime Status
             </p>
             <div className="flex items-center gap-2">
               <span className={`w-2 h-2 rounded-full ${colors.dot}`} />

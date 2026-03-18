@@ -46,7 +46,7 @@ export default function LandingPage() {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="w-full sm:w-auto text-base"
+                    className="w-full sm:w-auto text-white"
                   >
                     Sign In
                   </Button>

@@ -83,7 +83,7 @@ export default function LoginPage() {
                 BetterMonitor
               </span>
             </div>
-            <h1 className="text-3xl font-bold text-foreground">Sign In</h1>
+            <h1 className="text-3xl font-bold text-white">Sign In</h1>
             <p className="text-foreground/70">
               Welcome back to your monitoring dashboard
             </p>
@@ -148,7 +148,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              className="w-full"
+              className="w-full text-white"
               disabled={isLoading}
               size="lg"
             >
