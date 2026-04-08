@@ -109,12 +109,12 @@ const sendAlert = async (
     </div>
     `;
 
-    // await resend.emails.send({
-    //   from: FROM_EMAIL_ADDRESS,
-    //   to: [userEmail],
-    //   subject: `Mointor Alert for ${monitor.url}`,
-    //   html: EMAIL_TEXT
-    // })
+    await resend.emails.send({
+      from: FROM_EMAIL_ADDRESS,
+      to: [userEmail],
+      subject: `Mointor Alert for ${monitor.url}`,
+      html: EMAIL_TEXT
+    })
   } catch (error) {
     console.error("error sending alert", error);
   }
